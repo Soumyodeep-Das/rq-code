@@ -8,14 +8,18 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await account.createEmailSession(email, password);
+      // No need for userId when logging in
+      await account.createEmailPasswordSession(email, password);
+      localStorage.setItem("isAuthenticated", true); // Save session state
       alert("Login successful!");
       window.location.href = "/dashboard";
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Login failed:", error.message);
       alert(error.message);
     }
   };
+  
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen">
