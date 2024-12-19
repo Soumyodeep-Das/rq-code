@@ -7,7 +7,7 @@ const QRCodeInput = ({ userInput, setUserInput, handleGenerateQR }) => {
         type="text"
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
-        placeholder="Enter URL or text"
+        placeholder="Enter URL (https://website.domain) or text"
         className="w-full p-3 border rounded mb-4 shadow-sm focus:outline-blue-500"
       />
       <button

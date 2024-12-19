@@ -1,12 +1,13 @@
-import React from "react";
-import { QRCodeCanvas } from "qrcode.react";
-
 const QRCodeDisplay = ({ qrCodeUrl }) => {
+  if (!qrCodeUrl) {
+    return null;
+  }
+
   return (
-    <div className="mt-6 text-center">
-      <p className="font-semibold">Your QR Code:</p>
-      <QRCodeCanvas value={qrCodeUrl} size={200} className="my-4" />
-      <p className="text-sm text-gray-500">{qrCodeUrl}</p>
+    <div className="mt-4">
+      <h3 className="text-xl font-bold">Generated QR Code</h3>
+      {/* Display the QR code image using the base64 string */}
+      <img src={qrCodeUrl} alt="QR Code" className="mt-2" />
     </div>
   );
 };

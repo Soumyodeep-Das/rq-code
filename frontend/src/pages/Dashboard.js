@@ -18,6 +18,7 @@ const Dashboard = () => {
   const [userId, setUserId] = useState("");
   const [editData, setEditData] = useState({ id: null, data: "" });
 
+  // Fetch the user ID on initial render
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -32,13 +33,14 @@ const Dashboard = () => {
     fetchUserId();
   }, []);
 
+  // Fetch QR codes when the userId changes
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
     axios
       .get(`${process.env.REACT_APP_GET_QR_CODES_URL}/${userId}/qrcodes`)
       .then((response) => {
-        setQrCodes(response.data);
+        setQrCodes(response.data); // This updates the qrCodes state and triggers re-render
       })
       .catch((err) => {
         console.error("Failed to fetch QR codes", err);
@@ -53,29 +55,44 @@ const Dashboard = () => {
       toast.error("Please provide valid data!");
       return;
     }
-
+  
     try {
       const response = await axios.post(process.env.REACT_APP_GENERATE_QR_URL, {
         userId: userId,
         data: userInput,
       });
-
-      const { qrCodeId, qrCodeImage, data } = response.data;
+  
+      // Destructure the necessary data from the response
+      const { qrCodeId, qrCodeImage, data, qrCodeUrl } = response.data.qrCode;
+  
+      // Validate that we have the necessary data
+      if (!qrCodeId || !qrCodeImage || !data) {
+        throw new Error("Missing QR code data in the response.");
+      }
+  
+      // Log the values to check what's returned
+      console.log("QR Code generated:", qrCodeId, qrCodeImage, data, qrCodeUrl );
+  
+      // Set the QR code URL (base64 string) to be displayed
       setQrCodeUrl(qrCodeImage);
-      setShowQR(true);
+      setShowQR(true);  // Show the QR code once it's generated
       toast.success("QR Code generated successfully!");
-
-      setQrCodes((prev) => [...prev, { qrCodeId, data }]);
+  
+      // Update the list of QR codes with the new data
+      setQrCodes((prevQrCodes) => [...prevQrCodes, { qrCodeId, data, qrCodeImage }]);
     } catch (error) {
       console.error("Error generating QR code:", error);
       toast.error("Error generating QR code.");
     }
   };
+  
+  
+  
 
   const handleDelete = async (qrCodeId) => {
     try {
       await axios.delete(`${process.env.REACT_APP_DELETE_QR_URL}/${qrCodeId}`);
-      setQrCodes(qrCodes.filter((code) => code.qrCodeId !== qrCodeId));
+      setQrCodes((prevQrCodes) => prevQrCodes.filter((code) => code.qrCodeId !== qrCodeId));
       toast.success("QR Code deleted successfully!");
     } catch (err) {
       console.error("Failed to delete QR code:", err);
@@ -100,8 +117,10 @@ const Dashboard = () => {
       });
 
       const updatedQrCode = response.data;
-      setQrCodes((prev) =>
-        prev.map((qr) =>
+
+      // Use functional update to ensure the qrCodes state is updated correctly
+      setQrCodes((prevQrCodes) =>
+        prevQrCodes.map((qr) =>
           qr.qrCodeId === editData.id ? { ...qr, data: updatedQrCode.data } : qr
         )
       );
