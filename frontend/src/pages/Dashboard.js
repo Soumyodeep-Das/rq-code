@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { account } from "../services/appwriteConfig";
 import { toast } from "react-toastify";
-import { QRCodeCanvas } from "qrcode.react"; // Render QR codes
+import QRCodeInput from "../components/QRCodeInput";
+import QRCodeDisplay from "../components/QRCodeDisplay";
+import QRCodeList from "../components/QRCodeList";
+import EditQRCode from "../components/EditQRCode";
+import LogoutButton from "../components/LogoutButton";
+
 
 const Dashboard = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState("");
@@ -88,23 +93,20 @@ const Dashboard = () => {
       toast.error("Please provide valid data!");
       return;
     }
-  
+
     try {
-      // Use a PUT or PATCH request to update the existing QR code
       const response = await axios.put(`http://localhost:5000/api/qr/${editData.id}`, {
         userId: userId,
         data: editData.data,
       });
-  
+
       const updatedQrCode = response.data;
-  
-      // Update the local state with the updated QR code data
       setQrCodes((prev) =>
         prev.map((qr) =>
           qr.qrCodeId === editData.id ? { ...qr, data: updatedQrCode.data } : qr
         )
       );
-  
+
       setEditData({ id: null, data: "" });
       toast.success("QR Code updated successfully!");
     } catch (error) {
@@ -112,7 +114,6 @@ const Dashboard = () => {
       toast.error("Error updating QR code.");
     }
   };
-  
 
   const handleLogout = async () => {
     try {
@@ -127,95 +128,22 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8">
       <h1 className="text-3xl font-bold text-blue-600 mb-6">QR Code Dashboard</h1>
+      
+      <QRCodeInput userInput={userInput} setUserInput={setUserInput} handleGenerateQR={handleGenerateQR} />
 
-      <div className="w-full max-w-md px-4">
-        <input
-          type="text"
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Enter URL or text"
-          className="w-full p-3 border rounded mb-4 shadow-sm focus:outline-blue-500"
-        />
-
-        <button
-          onClick={handleGenerateQR}
-          className="w-full p-3 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition"
-        >
-          Generate QR Code
-        </button>
-      </div>
-
-      {showQR && (
-        <div className="mt-6 text-center">
-          <p className="font-semibold">Your QR Code:</p>
-          <QRCodeCanvas value={qrCodeUrl} size={200} className="my-4" />
-          <p className="text-sm text-gray-500">{qrCodeUrl}</p>
-        </div>
-      )}
+      {showQR && <QRCodeDisplay qrCodeUrl={qrCodeUrl} />}
 
       <div className="w-full max-w-4xl mt-8">
         <h2 className="text-xl font-bold mb-4">Your QR Codes</h2>
-
         {loading && <p>Loading...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {!loading && qrCodes.length === 0 && <p>No QR codes available.</p>}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {qrCodes.map((qr) => (
-            <div
-              key={qr.qrCodeId}
-              className="p-4 border rounded shadow-md bg-white"
-            >
-              <p className="text-sm font-bold text-gray-600 mb-2">
-                QR Code ID: {qr.qrCodeId}
-              </p>
-              <QRCodeCanvas value={qr.data} size={100} className="mb-4" />
-              <p className="text-sm text-gray-500 mb-4">{qr.data}</p>
-              <div className="flex space-x-2">
-                <button
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-                  onClick={() => handleEdit(qr)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                  onClick={() => handleDelete(qr.qrCodeId)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <QRCodeList qrCodes={qrCodes} handleEdit={handleEdit} handleDelete={handleDelete} />
       </div>
 
-      {editData.id && (
-        <div className="mt-8 w-full max-w-md">
-          <h3 className="text-lg font-bold mb-4">Edit QR Code</h3>
-          <input
-            type="text"
-            value={editData.data}
-            onChange={(e) =>
-              setEditData((prev) => ({ ...prev, data: e.target.value }))
-            }
-            className="w-full p-3 border rounded mb-4 focus:outline-blue-500"
-          />
-          <button
-            onClick={handleUpdate}
-            className="w-full p-3 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition"
-          >
-            Update QR Code
-          </button>
-        </div>
-      )}
+      {editData.id && <EditQRCode editData={editData} setEditData={setEditData} handleUpdate={handleUpdate} />}
 
-      <button
-        onClick={handleLogout}
-        className="mt-12 px-6 py-3 bg-red-600 text-white font-bold rounded hover:bg-red-700 transition"
-      >
-        Logout
-      </button>
+      <LogoutButton handleLogout={handleLogout} />
     </div>
   );
 };
