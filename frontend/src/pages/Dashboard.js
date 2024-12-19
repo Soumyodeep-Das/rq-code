@@ -8,7 +8,6 @@ import QRCodeList from "../components/QRCodeList";
 import EditQRCode from "../components/EditQRCode";
 import LogoutButton from "../components/LogoutButton";
 
-
 const Dashboard = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [showQR, setShowQR] = useState(false);
@@ -37,7 +36,7 @@ const Dashboard = () => {
     if (!userId) return;
     setLoading(true);
     axios
-      .get(`http://localhost:5000/api/user/${userId}/qrcodes`)
+      .get(`${process.env.REACT_APP_GET_QR_CODES_URL}/${userId}/qrcodes`)
       .then((response) => {
         setQrCodes(response.data);
       })
@@ -56,7 +55,7 @@ const Dashboard = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/generate", {
+      const response = await axios.post(process.env.REACT_APP_GENERATE_QR_URL, {
         userId: userId,
         data: userInput,
       });
@@ -75,7 +74,7 @@ const Dashboard = () => {
 
   const handleDelete = async (qrCodeId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/qr/${qrCodeId}`);
+      await axios.delete(`${process.env.REACT_APP_DELETE_QR_URL}/${qrCodeId}`);
       setQrCodes(qrCodes.filter((code) => code.qrCodeId !== qrCodeId));
       toast.success("QR Code deleted successfully!");
     } catch (err) {
@@ -95,7 +94,7 @@ const Dashboard = () => {
     }
 
     try {
-      const response = await axios.put(`http://localhost:5000/api/qr/${editData.id}`, {
+      const response = await axios.put(`${process.env.REACT_APP_UPDATE_QR_URL}/${editData.id}`, {
         userId: userId,
         data: editData.data,
       });
